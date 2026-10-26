@@ -1,0 +1,82 @@
+{
+  "pillars": [
+    {
+      "id":"reliability","code":"REL","name":"Reliability","icon":"reliability.svg",
+      "question":"Can users trust the data during a source or refresh failure?",
+      "controls":[
+        {"id":"REL01","title":"Measure end-to-end freshness","owner":"Data product owner","evidence":"Source watermark, refresh completion, and a visible stale-data threshold."},
+        {"id":"REL02","title":"Exercise recovery","owner":"BI operations","evidence":"Restore model definitions, rebind connections, and test gateway member loss against agreed RTO/RPO."}
+      ],
+      "metric":"p95 data age; failed refresh rate; tested RTO/RPO",
+      "references":["ms-waf","ms-gateway-ha","ms-incremental"]
+    },
+    {
+      "id":"security","code":"SEC","name":"Security","icon":"security.svg",
+      "question":"Which identity can read which rows at every boundary?",
+      "controls":[
+        {"id":"SEC01","title":"Test each authorization boundary","owner":"Data security owner","evidence":"Source roles, connection identity, semantic RLS/OLS, Viewer access, export, and Build permission tests."},
+        {"id":"SEC02","title":"Approve identity and data movement","owner":"Identity / network team","evidence":"Non-personal workload identity, credential lifecycle, TLS, DNS, approved regions, and explicit copy approval."}
+      ],
+      "metric":"Denied-access tests; privilege review age; credential expiry",
+      "references":["ms-waf","ms-rls","sf-sso"]
+    },
+    {
+      "id":"cost-optimization","code":"COST","name":"Cost optimization","icon":"cost-optimization.svg",
+      "question":"What does the complete query and refresh path cost?",
+      "controls":[
+        {"id":"COST01","title":"Attribute the complete BI bill","owner":"FinOps / BI platform","evidence":"Capacity + warehouse compute + billed transfer + storage + gateways + operating effort per data product."},
+        {"id":"COST02","title":"Set workload-specific limits","owner":"Source platform owner","evidence":"Warehouse auto-suspend, statement timeouts, credit monitors, and alerts with a named responder."}
+      ],
+      "metric":"Cost per active consumer; credits per refresh; transferred bytes",
+      "references":["ms-waf","sf-transfer","sf-monitor","sf-warehouse"]
+    },
+    {
+      "id":"operational-excellence","code":"OPS","name":"Operational excellence","icon":"operational-excellence.svg",
+      "question":"Can another engineer deploy, diagnose, and roll this back?",
+      "controls":[
+        {"id":"OPS01","title":"Promote definitions, not credentials","owner":"BI engineering","evidence":"Versioned model/report definitions, reviewed changes, environment connection mapping, and a rollback procedure."},
+        {"id":"OPS02","title":"Record ownership and observability","owner":"BI operations","evidence":"Runbook, service owner, lineage, refresh/query correlation, gateway health, and actionable alerts."}
+      ],
+      "metric":"Change failure rate; alert-to-recovery time; owner coverage",
+      "references":["ms-waf","ms-selfservice","ms-refresh-status"]
+    },
+    {
+      "id":"performance-efficiency","code":"PERF","name":"Performance efficiency","icon":"performance-efficiency.svg",
+      "question":"Does the measured workload meet its interaction target?",
+      "controls":[
+        {"id":"PERF01","title":"Benchmark the intended grain","owner":"Semantic model engineer","evidence":"Star schema, filtered columns, query folding, source plans, and cold/warm p95 at expected concurrency."},
+        {"id":"PERF02","title":"Observe every engine hop","owner":"BI / source engineering","evidence":"Aggregation hit/miss, source queue time, capacity throttling, memory, and Direct Lake fallback where applicable."}
+      ],
+      "metric":"p95 visual latency; source queue time; refresh peak memory",
+      "references":["ms-waf","ms-star","ms-dq","ms-directlake","ms-aggregations"]
+    }
+  ],
+  "caf": [
+    {"id":"tenant","name":"Tenant and billing","owner":"Enterprise platform","artifact":"Tenant/capacity region map; cloud billing ownership; per-user licensing decision.","references":["ms-caf","ms-licenses"]},
+    {"id":"identity","name":"Identity and access","owner":"Identity + data security","artifact":"Entra groups; source role mapping; workload identity; Viewer/Build/RLS test matrix.","references":["ms-caf","ms-rls","sf-sso"]},
+    {"id":"organization","name":"Resource organization","owner":"BI platform","artifact":"Domain ownership; dev/test/prod workspaces; subscription/account/project boundaries.","references":["ms-caf","ms-selfservice"]},
+    {"id":"network","name":"Network and connectivity","owner":"Network engineering","artifact":"Gateway placement; private/public paths; DNS; Cloud Fetch storage reachability; TLS.","references":["ms-caf","ms-vnet-gateway","aws-encryption","gcp-interconnect"]},
+    {"id":"security","name":"Security baseline","owner":"Security engineering","artifact":"Data classification; approved movement; export controls; source and semantic authorization.","references":["ms-caf","ms-rls","ms-dbx-mirror-limits"]},
+    {"id":"management","name":"Management","owner":"BI operations","artifact":"SLOs; gateway lifecycle; capacity/warehouse telemetry; recovery exercises.","references":["ms-caf","ms-gateway-ha","ms-waf"]},
+    {"id":"governance","name":"Governance","owner":"Data governance council","artifact":"Data contracts; endorsed semantic models; lineage; access reviews; exception register.","references":["ms-caf","ms-selfservice"]},
+    {"id":"automation","name":"Platform automation","owner":"Platform + BI engineering","artifact":"Reviewed IaC; environment parameters; source-controlled definitions; release/rollback evidence.","references":["ms-caf","dbx-bundle","ms-refresh"]}
+  ],
+  "boundaries": [
+    {"name":"Platform foundation","owner":"Cloud / network team","items":["Azure landing zone; AWS accounts; GCP projects","Routing, DNS, encryption, identity, and policy","Gateway hosts or delegated VNet subnet"]},
+    {"name":"Data products","owner":"Data platform team","items":["Snowflake / Databricks curated tables and views","Contracts, source grants, compute isolation","Watermarks, schema evolution, and source recovery"]},
+    {"name":"BI service estate","owner":"BI platform team","items":["Power BI / Fabric tenant, capacities, workspaces","Connection identities, semantic models, RLS/OLS","Deployment, monitoring, lineage, and licensing"]},
+    {"name":"Consumption","owner":"Domain report teams","items":["Thin reports, apps, and governed self-service","Viewer consumers; reviewed Build permission","Accessible report UX and visible data age"]}
+  ],
+  "readiness": [
+    {"id":"slo","label":"Freshness, interaction latency, concurrency, RTO, and RPO are agreed.","pillar":"reliability"},
+    {"id":"movement","label":"Rows, results, caches, exports, and metadata have approved destinations.","pillar":"security"},
+    {"id":"identity","label":"Source identity and semantic RLS/OLS pass allowed and denied tests.","pillar":"security"},
+    {"id":"license","label":"Authors, consumers, capacity features, and gateway licensing are confirmed.","pillar":"cost-optimization"},
+    {"id":"network","label":"DNS, TLS, warehouse endpoints, and result-storage access are tested.","pillar":"security"},
+    {"id":"load","label":"Cold/warm p95, refresh memory, and source queues meet measured targets.","pillar":"performance-efficiency"},
+    {"id":"cost","label":"Compute, transfer, capacity, storage, and operations have named budgets.","pillar":"cost-optimization"},
+    {"id":"release","label":"Definitions are versioned; environment mapping and rollback are rehearsed.","pillar":"operational-excellence"},
+    {"id":"owner","label":"A service owner, alert responder, and credential lifecycle are recorded.","pillar":"operational-excellence"},
+    {"id":"recovery","label":"Source outage, refresh failure, and gateway member loss are exercised.","pillar":"reliability"}
+  ]
+}

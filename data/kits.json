@@ -1,0 +1,60 @@
+{
+  "disclaimer":"Reference starters, not a complete landing-zone deployment. No tenant or cloud resource was provisioned to validate these examples. Review permissions, policy, region, costs, and rollback before running.",
+  "kits":[
+    {
+      "id":"azure-network","title":"Azure gateway network foundation","vendor":"Microsoft","format":"Bicep + PowerShell","icon":"azure-network.svg",
+      "purpose":"Create a dedicated VNet, delegated data-gateway subnet, and a separate private-endpoint subnet.",
+      "effect":"The wrapper runs Azure what-if by default. Only -Deploy with ShouldProcess confirmation submits a deployment.",
+      "notIncluded":"No Power BI/Fabric gateway, capacity, VPN, private endpoint, DNS zone, firewall policy, or cross-cloud route is created.",
+      "prerequisites":["Existing approved Azure landing zone, subscription, and resource group.","Non-overlapping address space and registered Microsoft.Network / Microsoft.PowerPlatform providers.","A supported gateway region/capacity plus network and security review."],
+      "files":["examples/azure/main.bicep","examples/azure/Deploy-Network.ps1","examples/azure/parameters.example.json"],
+      "command":".\\examples\\azure\\Deploy-Network.ps1 -SubscriptionId '<subscription-guid>' -ResourceGroupName '<existing-rg>' -Location '<approved-region>' -Owner '<team-alias>'",
+      "checks":["Compile Bicep and review what-if for the exact subscription/resource group.","Add actual source routes, DNS, TLS, storage access, and controls under network ownership.","Create the VNet data gateway separately and test service queries."],
+      "references":["ms-vnet-gateway","ms-caf","ms-azure-dbx"]
+    },
+    {
+      "id":"snowflake","title":"Snowflake least-privilege BI serving","vendor":"Snowflake","format":"SQL","icon":"snowflake.png",
+      "purpose":"Create an initially suspended, bounded BI warehouse and a reader role for one approved view.",
+      "effect":"Creates/updates the named BI warehouse settings and grants narrowly scoped read access. Creates no users, secrets, or OAuth integration.",
+      "notIncluded":"No row policy, Entra integration, resource monitor, or automatic assignment of the role to a user.",
+      "prerequisites":["A reviewed existing view and authorized role/warehouse grant administrator.","Set the SQL variables to approved database, schema, and view identifiers.","Validate actual compute sizing and statement timeouts with the intended workload."],
+      "files":["examples/snowflake/bi-serving.sql"],
+      "command":"snow sql --connection '<approved-profile>' --filename .\\examples\\snowflake\\bi-serving.sql",
+      "checks":["Review existing objects before rerunning; named warehouse settings are deliberately applied.","Map the role to an approved identity separately; do not grant ACCOUNTADMIN to report users.","Add a separately approved resource monitor and test query totals/types."],
+      "references":["sf-warehouse","sf-monitor","sf-sso","sf-transfer"]
+    },
+    {
+      "id":"databricks","title":"Databricks curated-view job","vendor":"Databricks","format":"YAML + SQL","icon":"databricks.png",
+      "purpose":"Deploy an unscheduled SQL-file job that publishes an explicit daily aggregate contract.",
+      "effect":"Bundle deployment creates a job and workspace file. Running the job replaces the named sample view using an existing SQL warehouse.",
+      "notIncluded":"No workspace, SQL warehouse, source table, catalog/schema, BI grants, or production schedule is provisioned.",
+      "prerequisites":["Authenticated current Databricks CLI profile and an existing SQL warehouse.","An approved run-as service principal with required source SELECT and target view-creation privileges.","Edit the fully qualified SQL source/target names and verify the documented source-column contract."],
+      "files":["examples/databricks/databricks.yml","examples/databricks/sql/daily-sales.sql"],
+      "command":"Set-Location .\\examples\\databricks\n databricks bundle validate -t sandbox --var 'warehouse_id=<warehouse-id>,run_as_principal=<application-id>'\n databricks bundle deploy -t sandbox --var 'warehouse_id=<warehouse-id>,run_as_principal=<application-id>'",
+      "checks":["Inspect the resolved bundle and job run-as identity before deploy/run.","Run the job explicitly; reconcile counts/amounts and review the replaced view.","Grant consumers only approved Unity Catalog and warehouse privileges separately."],
+      "references":["dbx-bundle","dbx-aws","dbx-gcp","ms-star"]
+    },
+    {
+      "id":"incremental","title":"Foldable incremental refresh filter","vendor":"Microsoft","format":"Power Query M","icon":"semantic-model.svg",
+      "purpose":"Apply a half-open Date/Time window to a connector-backed curated fact table.",
+      "effect":"Filters an existing Power Query table. It does not create the parameters or the service refresh policy.",
+      "notIncluded":"No connector credentials, model, date parameters, refresh policy, or real-time partition is deployed.",
+      "prerequisites":["Existing connector-backed query named FactSalesSource with an OrderDateTime Date/Time column.","Separate case-sensitive RangeStart and RangeEnd Date/Time parameters in Power Query.","A reviewed retention/refresh window and a connector query-folding test."],
+      "files":["examples/powerbi/incremental-refresh.pq"],
+      "command":"Use the M expression in a separate FactSales query; configure the table refresh policy in Power BI Desktop, then publish and complete initial refresh.",
+      "checks":["Verify OrderDateTime >= RangeStart and OrderDateTime < RangeEnd reach the source.","Test adjacent window boundaries, late-arriving changes, and time zones.","Enable a real-time DirectQuery partition only with supported licensing and an explicit requirement."],
+      "references":["ms-incremental","ms-incremental-config"]
+    },
+    {
+      "id":"refresh","title":"Guarded enhanced model refresh","vendor":"Microsoft","format":"PowerShell + REST","icon":"power-bi.svg",
+      "purpose":"Request a transactional enhanced refresh and optionally wait for that exact operation.",
+      "effect":"-WhatIf does not authenticate or make network requests. A confirmed invocation consumes source and capacity resources.",
+      "notIncluded":"No model publication, credential provisioning, license assignment, or deployment pipeline is performed.",
+      "prerequisites":["PowerShell 7.2+, MicrosoftPowerBIMgmt.Profile, and a workspace supporting enhanced refresh.","Existing model, configured source connections, and appropriate API/workspace permissions.","Interactive Entra login or approved certificate-based service principal; enable tenant API access as required."],
+      "files":["examples/powerbi/Invoke-EnhancedRefresh.ps1"],
+      "command":".\\examples\\powerbi\\Invoke-EnhancedRefresh.ps1 -TenantId '<tenant-guid>' -WorkspaceId '<workspace-guid>' -SemanticModelId '<model-guid>' -WhatIf",
+      "checks":["Review the request with -WhatIf before using the script without that switch.","Accepted is not Completed: use -Wait and inspect operation state.","Test failure/timeout handling; a client wait timeout does not cancel a running service refresh."],
+      "references":["ms-refresh","ms-refresh-status","ms-incremental","ms-licenses"]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+-- Run only as an approved role/warehouse grant administrator in a reviewed account.
+-- Edit the database and approved view before execution; no credentials belong here.
+SET bi_database = 'CONTOSO_ANALYTICS';
+SET bi_schema = $bi_database || '.GOLD';
+SET bi_view = $bi_schema || '.POWERBI_SALES';
+
+CREATE ROLE IF NOT EXISTS CONTOSO_BI_READER;
+
+CREATE WAREHOUSE IF NOT EXISTS CONTOSO_BI_WH
+    WAREHOUSE_SIZE = 'XSMALL'
+    AUTO_SUSPEND = 60
+    AUTO_RESUME = TRUE
+    INITIALLY_SUSPENDED = TRUE
+    STATEMENT_TIMEOUT_IN_SECONDS = 120
+    STATEMENT_QUEUED_TIMEOUT_IN_SECONDS = 60
+    COMMENT = 'Contoso BI starter: size and timeouts require workload validation';
+
+-- IF NOT EXISTS does not reconcile an existing warehouse's configuration.
+ALTER WAREHOUSE CONTOSO_BI_WH SET
+    AUTO_SUSPEND = 60
+    AUTO_RESUME = TRUE
+    STATEMENT_TIMEOUT_IN_SECONDS = 120
+    STATEMENT_QUEUED_TIMEOUT_IN_SECONDS = 60;
+
+GRANT USAGE ON WAREHOUSE CONTOSO_BI_WH TO ROLE CONTOSO_BI_READER;
+GRANT USAGE ON DATABASE IDENTIFIER($bi_database) TO ROLE CONTOSO_BI_READER;
+GRANT USAGE ON SCHEMA IDENTIFIER($bi_schema) TO ROLE CONTOSO_BI_READER;
+GRANT SELECT ON VIEW IDENTIFIER($bi_view) TO ROLE CONTOSO_BI_READER;
+
+SHOW GRANTS TO ROLE CONTOSO_BI_READER;

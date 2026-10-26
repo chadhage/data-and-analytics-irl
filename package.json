@@ -1,0 +1,21 @@
+{
+  "name": "bi-across-clouds",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Data & Analytics across clouds: a first-party-source architecture field guide, initially covering Snowflake, Databricks, and BI consumption scenarios.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/serve.mjs --dist",
+    "test": "node --test",
+    "check": "node --check src/app.js && node --check src/decision.js && node --check scripts/serve.mjs && node --check scripts/build.mjs && node --test",
+    "check:examples": "pwsh -NoProfile -File scripts/Test-Examples.ps1"
+  },
+  "devDependencies": {
+    "yaml": "^2.8.1"
+  }
+}

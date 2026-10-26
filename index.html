@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Data and analytics architecture across Azure, AWS, Google Cloud, and on-premises. Initial coverage includes Snowflake, Databricks, data integration, governance, and Power BI consumption scenarios.">
+  <meta name="color-scheme" content="light dark">
+  <title>Data &amp; Analytics across clouds | Architecture field guide</title>
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("clawpilotTheme");
+      const theme =
+        param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --cp-bg: #f7f4ef;
+      --cp-bg-elevated: #fcfbf8;
+      --cp-surface: #ffffff;
+      --cp-surface-soft: #f5f5f5;
+      --cp-border: #dedede;
+      --cp-border-strong: #919191;
+      --cp-text: #242424;
+      --cp-text-muted: #5c5c5c;
+      --cp-text-soft: #6f6f6f;
+      --cp-accent: #b11f4b;
+      --cp-accent-hover: #9a1a41;
+      --cp-accent-soft: rgba(177, 31, 75, 0.08);
+      --cp-accent-fg: #ffffff;
+      --cp-success: #16a34a;
+      --cp-danger: #dc2626;
+      --cp-warning: #f59e0b;
+      --cp-link: #0078d4;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+      --cp-overlay: rgba(255, 255, 255, 0.8);
+      --cp-panel: rgba(255, 255, 255, 0.86);
+      --cp-panel-strong: rgba(255, 255, 255, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.55);
+      --cp-highlight: rgba(177, 31, 75, 0.12);
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --cp-bg: #3d3b3a;
+      --cp-bg-elevated: #343231;
+      --cp-surface: #292929;
+      --cp-surface-soft: #2e2e2e;
+      --cp-border: #474747;
+      --cp-border-strong: #5f5f5f;
+      --cp-text: #dedede;
+      --cp-text-muted: #919191;
+      --cp-text-soft: #b0b0b0;
+      --cp-accent: #fd8ea1;
+      --cp-accent-hover: #fb7b91;
+      --cp-accent-soft: rgba(253, 142, 161, 0.14);
+      --cp-accent-fg: #1a1a1a;
+      --cp-success: #4ade80;
+      --cp-danger: #f87171;
+      --cp-warning: #fbbf24;
+      --cp-link: #4da6ff;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+      --cp-overlay: rgba(41, 41, 41, 0.88);
+      --cp-panel: rgba(41, 41, 41, 0.72);
+      --cp-panel-strong: rgba(41, 41, 41, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.04);
+      --cp-highlight: rgba(253, 142, 161, 0.12);
+    }
+  </style>
+  <link rel="stylesheet" href="assets/styles.css">
+  <script type="module" src="src/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <aside class="sidebar" id="sidebar" aria-label="Field guide navigation">
+    <button class="button quiet menu-close" data-action="menu" aria-controls="sidebar" aria-expanded="false">Close menu</button>
+    <a class="brand" href="#/overview" aria-label="Data &amp; Analytics across clouds home">
+      <span class="brand-label">DATA &amp; ANALYTICS<br>ACROSS CLOUDS</span>
+      <span class="brand-subtitle">Architecture field guide</span>
+    </a>
+    <div class="nav-caption">EXPLORE THE ESTATE</div>
+    <nav aria-label="Main">
+      <a href="#/overview" data-nav="overview"><span class="nav-index">01</span>Overview</a>
+      <a href="#/patterns" data-nav="patterns"><span class="nav-index">02</span>Pattern library<span class="nav-count" id="pattern-count">16</span></a>
+      <a href="#/decision" data-nav="decision"><span class="nav-index">03</span>Decision guide</a>
+      <a href="#/landing-zone" data-nav="landing-zone"><span class="nav-index">04</span>Landing zone</a>
+      <a href="#/scenarios" data-nav="scenarios"><span class="nav-index">05</span>Contoso scenarios<span class="nav-count">6</span></a>
+      <a href="#/antipatterns" data-nav="antipatterns"><span class="nav-index">06</span>Anti-patterns<span class="nav-count">8</span></a>
+    </nav>
+    <div class="nav-caption second-caption">IMPLEMENT &amp; VERIFY</div>
+    <nav aria-label="Implementation">
+      <a href="#/kits" data-nav="kits"><span class="nav-index">07</span>Deployment starters</a>
+      <a href="#/sources" data-nav="sources"><span class="nav-index">08</span>Sources &amp; method</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <span class="small-label">SOURCE PLATFORMS</span>
+      <p>Snowflake &amp; Databricks</p>
+      <span class="sidebar-scope">Azure / AWS / GCP / on-prem</span>
+      <div class="review-stamp"><span class="status-dot"></span>Reviewed 26 Oct 2026</div>
+      <a href="#/sources">Scope and validation limits</a>
+    </div>
+  </aside>
+  <button class="menu-backdrop" data-action="menu" aria-label="Close navigation" aria-controls="sidebar" aria-expanded="false" tabindex="-1"></button>
+  <div class="workspace">
+    <header class="topbar">
+      <button class="button quiet menu-button" data-action="menu" aria-controls="sidebar" aria-expanded="false">Menu</button>
+      <div class="breadcrumb"><span>FIELD GUIDE</span><span class="breadcrumb-separator">/</span><strong id="breadcrumb-current">Overview</strong></div>
+      <form class="global-search" id="global-search" role="search">
+        <label class="sr-only" for="global-query">Search the field guide</label>
+        <input id="global-query" name="q" type="search" placeholder="Search the field guide" autocomplete="off">
+        <button type="submit" aria-label="Search">Search</button>
+        <kbd aria-hidden="true">/</kbd>
+      </form>
+      <button class="button quiet" data-action="theme" id="theme-button" aria-label="Switch color theme">Dark</button>
+    </header>
+    <main id="main-content" tabindex="-1">
+      <div id="app" class="content" aria-busy="true">
+        <p class="eyebrow">MULTICLOUD DATA &amp; ANALYTICS</p>
+        <h1>Data &amp; Analytics across clouds</h1>
+        <p>Loading the architecture catalog...</p>
+      </div>
+      <noscript>
+        <div class="content">
+          <p>This interactive guide requires JavaScript. The technical material is also available as files:</p>
+          <p><a href="docs/engineering-guide.md">Engineering guide</a> / <a href="examples/README.md">Starter kit instructions</a> / <a href="data/sources.json">Official source catalog</a>.</p>
+        </div>
+      </noscript>
+    </main>
+    <footer class="site-footer">
+      <span>Independent engineering synthesis. Contoso scenarios are illustrative.</span>
+      <a href="#/sources">First-party references &amp; asset provenance</a>
+    </footer>
+  </div>
+  <div class="compare-tray" id="compare-tray" hidden>
+    <span id="compare-summary">0 patterns selected</span>
+    <button class="button primary" data-action="compare">Compare selected</button>
+    <button class="button quiet" data-action="clear-compare">Clear</button>
+  </div>
+  <dialog id="compare-dialog" aria-labelledby="compare-title" class="wide-dialog">
+    <div class="dialog-header"><h2 id="compare-title">Pattern comparison</h2><button class="button quiet" data-action="close-dialog">Close</button></div>
+    <div id="compare-content"></div>
+  </dialog>
+  <dialog id="file-dialog" aria-labelledby="file-title" class="wide-dialog">
+    <div class="dialog-header"><h2 id="file-title">Example source</h2><button class="button quiet" data-action="close-dialog">Close</button></div>
+    <p class="muted" id="file-description">Review before running. This preview executes nothing.</p>
+    <div class="file-actions"><button class="button" data-action="copy-file">Copy code</button><a class="button" id="file-download" download>Download file</a></div>
+    <pre class="code-block"><code id="file-code"></code></pre>
+  </dialog>
+  <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

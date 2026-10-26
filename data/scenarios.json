@@ -1,0 +1,65 @@
+{
+  "disclaimer":"Contoso examples are hypothetical design exercises, not customer deployments. Scale and targets below are inputs to validate, not benchmark results or vendor SLAs.",
+  "scenarios":[
+    {
+      "id":"aws-finance","code":"S01","title":"Power BI with Snowflake on AWS","sector":"Finance","clouds":["AWS","Azure"],"provider":"snowflake",
+      "inputs":[{"label":"Source footprint","value":"40 TB"},{"label":"Peak consumers","value":"250"},{"label":"Freshness target","value":"2 hours"},{"label":"Copy policy","value":"Approved curated slice"}],
+      "decision":"Import an incremental finance model; keep the source warehouse out of routine report interactions.",
+      "patterns":["snowflake-import","shared-models","aggregate-detail"],
+      "tradeoff":"A smaller modeled footprint improves interactive isolation, but the refresh identity and downstream RLS need separate controls.",
+      "tests":["Reconcile ledger totals and distinct account counts.","Prove folded refresh predicates and peak memory fit.","Test Viewer RLS and record actual source-to-report age."],
+      "avoid":"Do not choose blanket DirectQuery solely because the Snowflake account contains 40 TB.",
+      "references":["ms-snowflake","ms-incremental","ms-rls","sf-transfer"]
+    },
+    {
+      "id":"azure-retail","code":"S02","title":"Retail on Azure Databricks","sector":"Retail","clouds":["Azure"],"provider":"databricks",
+      "inputs":[{"label":"Gold footprint","value":"25 TB"},{"label":"Peak consumers","value":"600"},{"label":"Freshness target","value":"15 minutes"},{"label":"Fabric","value":"Existing capacity"}],
+      "decision":"Prototype eligible catalog mirroring / Direct Lake against a SQL DirectQuery alternative.",
+      "patterns":["catalog-mirroring","databricks-directquery","shared-models"],
+      "tradeoff":"Catalog mirroring avoids a managed-table replica, but requires accessible ADLS and eligible table types; it is not a universal Unity Catalog policy path.",
+      "tests":["Exclude tables with unsupported row/column policies.","Measure commit-to-report visibility and cold/warm p95.","Test source file permissions and model RLS independently."],
+      "avoid":"Do not bypass policy-protected Unity Catalog tables with broad storage grants.",
+      "references":["ms-dbx-mirror","ms-dbx-mirror-limits","ms-directlake","ms-azure-dbx"]
+    },
+    {
+      "id":"gcp-operations","code":"S03","title":"Operations on Databricks / GCP","sector":"Operations","clouds":["GCP","Azure"],"provider":"databricks",
+      "inputs":[{"label":"Source footprint","value":"12 TB"},{"label":"Peak consumers","value":"80"},{"label":"Freshness target","value":"Query-time detail"},{"label":"Copy policy","value":"Detail restricted"}],
+      "decision":"Validate the GCP-specific connector/authentication combination, then benchmark SQL DirectQuery.",
+      "patterns":["databricks-directquery","private-connectivity","regional-estates"],
+      "tradeoff":"DirectQuery reduces imported detail, not result movement. Microsoft's generic Databricks connector page scopes AWS OAuth; the GCP vendor page has separate requirements.",
+      "tests":["Test Desktop, published service, and gateway with the same supported identity.","Observe Cloud Fetch, source startup, queue time, and visual fan-out.","Approve results, caches, and consumer geography before release."],
+      "avoid":"Do not apply an AWS OAuth connector recipe unchanged to GCP.",
+      "references":["dbx-gcp","ms-dbx","ms-azure-dbx","ms-dq","gcp-interconnect"]
+    },
+    {
+      "id":"hybrid-manufacturing","code":"S04","title":"On-premises ERP + cloud production","sector":"Manufacturing","clouds":["On-premises","Azure","AWS"],"provider":"mixed",
+      "inputs":[{"label":"Sources","value":"ERP + Databricks"},{"label":"Peak consumers","value":"180"},{"label":"Freshness target","value":"4 hours"},{"label":"Network","value":"Private source access"}],
+      "decision":"Use a managed standard gateway HA path and conform ERP/production dimensions upstream.",
+      "patterns":["onprem-gateway","curated-integration","shared-models"],
+      "tradeoff":"An integrated serving layer adds ingestion operations but avoids repeated cross-source joins and inconsistent plant/product keys.",
+      "tests":["Reconcile plant, product, currency, and time-zone mappings.","Exercise a gateway member outage during a controlled refresh.","Measure ingestion plus semantic refresh against the four-hour target."],
+      "avoid":"Do not make a personal gateway or the ERP database host the unowned BI availability dependency.",
+      "references":["ms-gateway-ha","ms-star","ms-composite","ms-caf"]
+    },
+    {
+      "id":"merger-estate","code":"S05","title":"Merger across three cloud estates","sector":"Enterprise integration","clouds":["Azure","AWS","GCP"],"provider":"mixed",
+      "inputs":[{"label":"Sources","value":"Snowflake + Databricks"},{"label":"Domains","value":"6"},{"label":"Freshness target","value":"Daily close"},{"label":"Priority","value":"Consistent dimensions"}],
+      "decision":"Publish a minimum conformed serving product and shared business measures; leave unrelated data in place.",
+      "patterns":["curated-integration","shared-models","cross-source-composite"],
+      "tradeoff":"Approved upstream integration is additional engineering, but makes entity resolution and reconciliation explicit and reusable.",
+      "tests":["Reconcile customer/entity keys and financial aggregation rules.","Measure actual extract/replication transfer, compute, and refresh cost.","Use a bounded composite only for extensions that pass realistic tests."],
+      "avoid":"Do not create one global semantic model by interactively joining every cloud's largest fact table.",
+      "references":["ms-star","ms-selfservice","ms-composite","sf-transfer"]
+    },
+    {
+      "id":"regional-regulation","code":"S06","title":"Restricted regional data products","sector":"Regulated enterprise","clouds":["Azure","AWS","GCP","On-premises"],"provider":"mixed",
+      "inputs":[{"label":"Regions","value":"Separately governed"},{"label":"Copy policy","value":"No central detail pool"},{"label":"Consumers","value":"Region-scoped"},{"label":"Global reporting","value":"Approved summaries"}],
+      "decision":"Operate region-scoped models and publish only explicitly approved cross-region summaries or links.",
+      "patterns":["regional-estates","shared-models","private-connectivity"],
+      "tradeoff":"Separate regional estates increase operational cost. They still require legal review of results, caches, metadata, exports, and access locations.",
+      "tests":["Document tenant/capacity/source/consumer location and allowed flows.","Prove region-scoped access denials and summary disclosure controls.","Test recovery without an unapproved cross-region failover destination."],
+      "avoid":"Do not claim that DirectQuery, a gateway, or separate workspaces alone guarantees residency compliance.",
+      "references":["ms-caf","ms-licenses","ms-rls","aws-encryption","gcp-interconnect"]
+    }
+  ]
+}

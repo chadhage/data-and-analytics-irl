@@ -1,0 +1,32 @@
+bundle:
+  name: contoso-bi-serving
+
+variables:
+  warehouse_id:
+    description: Existing, approved SQL warehouse ID; no compute is provisioned.
+  run_as_principal:
+    description: Application ID of the approved Databricks run-as service principal.
+
+resources:
+  jobs:
+    publish_daily_sales:
+      name: contoso-bi-publish-daily-sales
+      description: Unscheduled starter; review SQL source and target before running.
+      max_concurrent_runs: 1
+      timeout_seconds: 1800
+      run_as:
+        service_principal_name: ${var.run_as_principal}
+      tags:
+        workload: powerbi
+        contract: daily-sales-v1
+      tasks:
+        - task_key: publish_view
+          sql_task:
+            warehouse_id: ${var.warehouse_id}
+            file:
+              path: ./sql/daily-sales.sql
+              source: WORKSPACE
+
+targets:
+  sandbox:
+    default: true

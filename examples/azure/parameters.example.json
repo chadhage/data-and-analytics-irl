@@ -1,0 +1,11 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "networkName": {"value": "bi-serving-vnet"},
+    "environment": {"value": "dev"},
+    "networkPrefix": {"value": "10.90.0.0/16"},
+    "dataGatewayPrefix": {"value": "10.90.1.0/27"},
+    "privateEndpointPrefix": {"value": "10.90.2.0/24"}
+  }
+}
