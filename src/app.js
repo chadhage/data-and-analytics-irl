@@ -1,6 +1,6 @@
 import { filterPatterns, recommend, makeDecisionRecord } from './decision.js';
 
-const siteTitle = 'Data & Analytics across clouds';
+const siteTitle = 'Data & Analytics real-life scenarios';
 const app = document.querySelector('#app');
 const main = document.querySelector('#main-content');
 const compared = new Set();
@@ -78,7 +78,7 @@ function pillarStrip() {
 function overview() {
   return `
     <section class="hero">
-      <div class="hero-copy"><p class="eyebrow">MULTICLOUD ARCHITECTURE / ENGINEERING FIELD GUIDE</p><h1>Data &amp; Analytics<br><span class="accent">across clouds</span></h1>
+      <div class="hero-copy"><p class="eyebrow">MULTICLOUD ARCHITECTURE / ENGINEERING FIELD GUIDE</p><h1>Data &amp; Analytics<br><span class="accent">real-life scenarios</span></h1>
         <p>Data platforms and analytics across Azure, AWS, Google Cloud, and on-premises. Snowflake and Databricks are the initial platforms; Power BI is one analytics consumption path.</p>
         <div class="hero-actions"><a class="button primary" href="#/decision">Evaluate a serving path</a><a class="button" href="#/patterns">Browse patterns</a></div>
         <div class="scope-note"><span class="status-dot"></span>First-party sources / WAF + CAF alignment</div>

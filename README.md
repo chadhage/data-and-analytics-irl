@@ -1,4 +1,4 @@
-# Data & Analytics across clouds
+# Data & Analytics real-life scenarios
 
 Static, engineering-focused architecture field guide for data and analytics
 across Azure, AWS, Google Cloud, and on-premises.
@@ -8,10 +8,25 @@ and BI serving. Power BI with Snowflake on AWS is one worked scenario, not the
 scope of the entire site. The decision guide starts with mixed sources across
 multiple clouds; the existing BI-specific patterns and deployment starters remain.
 
+## Published site
+
+[Data & Analytics real-life scenarios](https://chadhage.github.io/data-across-clouds/)
+is hosted on GitHub Pages. Assets, catalogs, and source downloads use relative
+URLs so they work under the repository's `/data-across-clouds/` path. Browser
+navigation uses hash routes; a deep link such as
+[`#/patterns/snowflake-import`](https://chadhage.github.io/data-across-clouds/#/patterns/snowflake-import)
+does not require a server-side rewrite.
+
+The [publishing workflow](.github/workflows/validate.yml) validates and builds all
+changes. Successful pushes to `main` and manual runs on `main` publish only the
+generated static `dist` artifact. Pull requests and other branches do not deploy.
+The deployment job uses the `github-pages` environment and narrowly scoped Pages
+and OIDC permissions; no deployment token or cloud credentials are stored.
+
 ## Run
 
-Requires Node.js 22 or later. There is no backend, account login, analytics,
-remote font, runtime CDN, or cloud deployment.
+Requires Node.js 22 or later. There is no backend, account login, telemetry,
+remote font, runtime CDN, or Azure/AWS/GCP resource provisioning.
 
 ```powershell
 npm ci --ignore-scripts
@@ -56,7 +71,9 @@ previous build bearing this project's marker. Host that output on an approved
 static HTTP service; retain all files and case-sensitive paths. Browser routes
 use hashes, so no SPA rewrite is needed. The local server supplies a CSP with
 hashes for the theme bootstrap/variables; configure equivalent headers on a
-production host. The supplied workflow validates/builds but does **not** deploy.
+production host that supports custom response headers. GitHub Pages does not
+reproduce the local preview server's custom CSP/HTTP headers. Its hosting workflow
+publishes static site files only; it never runs the example provisioning scripts.
 
 The examples are not complete infrastructure, model, or report deployment
 automation. Read [the starter runbook](examples/README.md) before executing
@@ -67,8 +84,8 @@ performance, or regulatory certification.
 
 Checked on 2026-10-26:
 
-- 24 automated tests, including 576 decision-input combinations, catalog links,
-  YAML, original asset hashes, and HTTP behavior.
+- 25 automated tests, including 576 decision-input combinations, catalog links,
+  YAML/deployment gates, project-relative URLs, original asset hashes, and HTTP behavior.
 - PowerShell parsing and no-network `-WhatIf` paths; successful Bicep compilation.
 - Desktop (1440 x 1000) and mobile (390 x 844) browser checks: all 16 pattern
   detail routes, 11 mobile views without page overflow, filters, comparisons,

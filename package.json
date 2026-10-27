@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Data & Analytics across clouds: a first-party-source architecture field guide, initially covering Snowflake, Databricks, and BI consumption scenarios.",
+  "description": "Data & Analytics real-life scenarios: a first-party-source architecture field guide, initially covering Snowflake, Databricks, and BI consumption scenarios.",
   "engines": {
     "node": ">=22"
   },

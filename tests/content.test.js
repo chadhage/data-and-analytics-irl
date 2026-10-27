@@ -115,11 +115,13 @@ test('component styles use theme variables; no custom icon artwork is embedded',
   assert.doesNotMatch(html,/<svg[\s>]/i);
   assert.doesNotMatch(app,/<svg[\s>]/i);
   assert.match(html,/clawpilotTheme/);
-  assert.match(html,/<title>Data &amp; Analytics across clouds \| Architecture field guide<\/title>/);
-  assert.match(html,/aria-label="Data &amp; Analytics across clouds home"/);
-  assert.match(app,/const siteTitle = 'Data & Analytics across clouds'/);
+  assert.match(html,/<title>Data &amp; Analytics real-life scenarios \| Architecture field guide<\/title>/);
+  assert.match(html,/aria-label="Data &amp; Analytics real-life scenarios home"/);
+  assert.match(html,/DATA &amp; ANALYTICS<br>REAL-LIFE SCENARIOS/);
+  assert.match(app,/const siteTitle = 'Data & Analytics real-life scenarios'/);
+  assert.match(app,/<span class="accent">real-life scenarios<\/span>/);
   assert.match(app,/Power BI is one analytics consumption path/);
-  assert.doesNotMatch(html + app,/BI across clouds|Power BI across cloud estates/);
+  assert.doesNotMatch(html + app,/Data (&|&amp;) Analytics across clouds|BI across clouds|Power BI across cloud estates/);
   assert.match(html,/class="button quiet menu-close"/);
   assert.match(css,/\.sidebar \.menu-close, \.menu-backdrop \{ display: none;/);
   assert.match(css,/\.sidebar \{ visibility: hidden;/);
@@ -147,15 +149,47 @@ test('Databricks YAML parses and points at the actual unscheduled SQL file',asyn
   assert.match(sql,/source_row_count/);
 });
 
-test('validation workflow parses, stays read-only, and deploys no cloud resources',async () => {
+test('workflow validates before publishing only main with scoped Pages permissions',async () => {
   const document = parseDocument(await readFile(local('.github/workflows/validate.yml'),'utf8'),{uniqueKeys:true});
   assert.deepEqual(document.errors,[]);
   const workflow = document.toJS();
   assert.equal(workflow.permissions.contents,'read');
+  assert.equal(workflow.permissions.pages,undefined);
+  assert.ok(Object.hasOwn(workflow.on,'push'));
+  assert.ok(Object.hasOwn(workflow.on,'pull_request'));
+  assert.ok(Object.hasOwn(workflow.on,'workflow_dispatch'));
   const commands = workflow.jobs.validate.steps.map(step => step.run ?? '').join('\n');
   assert.match(commands,/npm run check/);
   assert.match(commands,/npm run build/);
   assert.doesNotMatch(commands,/az deployment|terraform apply|bundle deploy|azd up/i);
+  const gate = "github.ref == 'refs/heads/main' && github.event_name != 'pull_request'";
+  const setup = workflow.jobs.validate.steps.find(step => step.uses === 'actions/configure-pages@v5');
+  const upload = workflow.jobs.validate.steps.find(step => step.uses === 'actions/upload-pages-artifact@v4');
+  assert.equal(setup?.if,gate);
+  assert.equal(upload?.if,gate);
+  assert.equal(upload.with.path,'dist');
+  const deploy = workflow.jobs.deploy;
+  assert.equal(deploy.if,gate);
+  assert.equal(deploy.needs,'validate');
+  assert.deepEqual(deploy.permissions,{'pages':'write','id-token':'write'});
+  assert.equal(deploy.environment.name,'github-pages');
+  assert.equal(deploy.environment.url,'${{ steps.deployment.outputs.page_url }}');
+  assert.equal(deploy.concurrency.group,'github-pages');
+  assert.equal(deploy.concurrency['cancel-in-progress'],false);
+  assert.equal(deploy.steps.length,1);
+  assert.equal(deploy.steps[0].uses,'actions/deploy-pages@v4');
+  assert.equal(deploy.steps[0].id,'deployment');
+});
+
+test('site resource URLs remain relative for repository-scoped GitHub Pages hosting',async () => {
+  const [html,app] = await Promise.all(['index.html','src/app.js'].map(file => readFile(local(file),'utf8')));
+  const base = new URL('https://chadhage.github.io/data-across-clouds/');
+  for (const [,reference] of html.matchAll(/\b(?:href|src)="([^"]+)"/g)) {
+    const url = new URL(reference,base);
+    if (url.origin === base.origin) assert.ok(url.pathname.startsWith(base.pathname),reference);
+  }
+  assert.doesNotMatch(app,/fetch\(\s*['"`]\//);
+  assert.doesNotMatch(app,/\b(?:href|src)=["']\//);
 });
 
 test('incremental sample uses a half-open date/time range without transforming each source date',async () => {

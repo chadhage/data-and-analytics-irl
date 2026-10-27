@@ -1,6 +1,6 @@
 # Multicloud Power BI engineering guide
 
-The initial BI engineering module of [Data & Analytics across clouds](../README.md).
+The initial BI engineering module of [Data & Analytics real-life scenarios](../README.md).
 
 Scope: Snowflake and Databricks on Azure, AWS, and Google Cloud, with supported
 on-premises integration. Fabric/OneLake is an optional serving path, not a

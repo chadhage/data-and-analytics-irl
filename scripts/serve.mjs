@@ -106,7 +106,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     process.exitCode = 1;
   });
   server.listen(port,'127.0.0.1',() => {
-    console.log(`Data & Analytics across clouds: http://127.0.0.1:${port}`);
+    console.log(`Data & Analytics real-life scenarios: http://127.0.0.1:${port}`);
     console.log(`Serving ${process.argv.includes('--dist') ? 'the production dist build' : 'the static source site'}; no cloud calls or telemetry.`);
   });
   for (const signal of ['SIGINT','SIGTERM']) process.once(signal,() => server.close());
